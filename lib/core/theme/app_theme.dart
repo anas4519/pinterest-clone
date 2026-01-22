@@ -15,6 +15,7 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: _pinterestRed,
       scaffoldBackgroundColor: _lightBackground,
+      cardColor: _lightBackground,
 
       colorScheme: const ColorScheme.light(
         primary: _pinterestRed,
@@ -78,6 +79,7 @@ class AppTheme {
           TargetPlatform.iOS: SlideRightPageTransitionsBuilder(),
         },
       ),
+      splashFactory: NoSplash.splashFactory,
     );
   }
 
@@ -87,6 +89,7 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: _pinterestRed,
       scaffoldBackgroundColor: _darkBackground,
+      cardColor: _darkSurface,
 
       colorScheme: const ColorScheme.dark(
         primary: _pinterestRed,
@@ -150,6 +153,7 @@ class AppTheme {
           TargetPlatform.iOS: SlideRightPageTransitionsBuilder(),
         },
       ),
+      splashFactory: NoSplash.splashFactory,
     );
   }
 }

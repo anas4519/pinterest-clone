@@ -3,29 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinterest_clone/core/presentation/main_wrapper.dart';
 import 'package:pinterest_clone/features/auth/presentation/screens/login_screen.dart';
+import 'package:pinterest_clone/features/home/presentation/screens/home_screen.dart';
 import '../../features/auth/presentation/providers/auth_state_provider.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  // 1. Watch the auth state. If this changes, the router rebuilds.
   final isLoggedIn = ref.watch(authStateProvider);
 
   return GoRouter(
     initialLocation: '/home',
-    // 2. This is the "Redirect Logic"
     redirect: (context, state) {
       final isLoggingIn = state.uri.toString() == '/login';
-
-      // If not logged in and not on login page -> Go to Login
       if (!isLoggedIn && !isLoggingIn) {
         return '/login';
       }
 
-      // If logged in and on login page -> Go to Home
       if (isLoggedIn && isLoggingIn) {
         return '/home';
       }
-
-      // Otherwise, no change needed
       return null;
     },
 
@@ -43,8 +37,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/home',
-                builder: (context, state) =>
-                    const Scaffold(body: Center(child: Text("Home Feed"))),
+                builder: (context, state) => const HomeScreen(),
               ),
             ],
           ),
@@ -63,6 +56,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/add',
                 builder: (context, state) =>
                     const Scaffold(body: Center(child: Text("Add"))),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/chat',
+                builder: (context, state) =>
+                    const Scaffold(body: Center(child: Text("Chat"))),
               ),
             ],
           ),
