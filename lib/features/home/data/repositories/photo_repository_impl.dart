@@ -12,17 +12,38 @@ class PhotoRepositoryImpl {
 
   PhotoRepositoryImpl(this._dio);
 
-  Future<List<PhotoModel>> getCuratedPhotos({int page = 1}) async {
+  Future<List<PhotoModel>> getCuratedPhotos({
+    int page = 1,
+    int perPage = 20,
+  }) async {
     try {
       final response = await _dio.get(
         'curated',
-        queryParameters: {'page': page, 'per_page': 20},
+        queryParameters: {'page': page, 'per_page': perPage},
       );
 
       final List data = response.data['photos'];
       return data.map((e) => PhotoModel.fromJson(e)).toList();
     } catch (e) {
       throw Exception('Failed to load photos: $e');
+    }
+  }
+
+  Future<List<PhotoModel>> searchPhotos({
+    required String query,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      final response = await _dio.get(
+        'search',
+        queryParameters: {'query': query, 'page': page, 'per_page': perPage},
+      );
+
+      final List data = response.data['photos'];
+      return data.map((e) => PhotoModel.fromJson(e)).toList();
+    } catch (e) {
+      throw Exception('Failed to search photos: $e');
     }
   }
 }

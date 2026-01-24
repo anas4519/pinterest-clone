@@ -2,17 +2,25 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pinterest_clone/core/presentation/widgets/create_bottom_sheet.dart';
 
 class MainWrapper extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainWrapper({super.key, required this.navigationShell});
 
-  void _goBranch(int index) {
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
-    );
+  void _goBranch(BuildContext context, int index) {
+    if (index == 2) {
+      CreateBottomSheet.show(context);
+      return;
+    }
+
+    final branchIndex = index > 2 ? index - 1 : index;
+    navigationShell.goBranch(branchIndex);
+  }
+
+  int _getNavBarIndex(int branchIndex) {
+    return branchIndex >= 2 ? branchIndex + 1 : branchIndex;
   }
 
   @override
@@ -37,8 +45,8 @@ class MainWrapper extends StatelessWidget {
           ),
         ),
         child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: _goBranch,
+          selectedIndex: _getNavBarIndex(navigationShell.currentIndex),
+          onDestinationSelected: (index) => _goBranch(context, index),
           destinations: [
             const NavigationDestination(
               icon: Icon(CupertinoIcons.house, size: 24),
@@ -52,21 +60,18 @@ class MainWrapper extends StatelessWidget {
               label: 'Search',
             ),
 
-            // 3. CREATE (+)
             const NavigationDestination(
               icon: Icon(Icons.add, size: 30),
               selectedIcon: Icon(Icons.add, size: 30),
               label: 'Create',
             ),
 
-            // 4. MESSAGES
             const NavigationDestination(
               icon: Icon(CupertinoIcons.chat_bubble, size: 24),
               selectedIcon: Icon(CupertinoIcons.chat_bubble_fill, size: 24),
               label: 'Messages',
             ),
 
-            // 5. PROFILE
             NavigationDestination(
               icon: _ProfileAvatar(isActive: false),
               selectedIcon: _ProfileAvatar(isActive: true),
@@ -103,7 +108,7 @@ class _ProfileAvatar extends StatelessWidget {
         borderRadius: BorderRadius.circular(50),
         child: CachedNetworkImage(
           imageUrl:
-              "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
+              "https:images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(color: Colors.grey[800]),
           errorWidget: (context, url, error) => const Icon(Icons.person),

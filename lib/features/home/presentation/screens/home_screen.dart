@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:pinterest_clone/features/home/presentation/widgets/custom_refresh.dart'; // Ensure this matches your file name
+import 'package:pinterest_clone/features/home/presentation/widgets/custom_refresh.dart';
 import 'package:pinterest_clone/features/home/presentation/widgets/pin_cart.dart';
 import '../providers/home_provider.dart';
 import '../widgets/feed_shimmer.dart';
@@ -132,102 +132,132 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
 
-            // --- Tab 2: DIY and Crafts ---
             PinterestRefreshIndicator(
               onRefresh: () async {
                 await ref.read(homeFeedProvider.notifier).refresh();
               },
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification scrollInfo) {
-                  // Pagination logic for the main vertical scroll
-                  if (scrollInfo.metrics.axis == Axis.vertical &&
-                      scrollInfo.metrics.pixels >=
-                          scrollInfo.metrics.maxScrollExtent - 200) {
-                    ref.read(homeFeedProvider.notifier).loadMore();
-                  }
-                  return false;
-                },
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 10),
-                            Text(
-                              'DIY and Crafts',
-                              style: theme.textTheme.displaySmall!.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+              child: photosAsync.when(
+                loading: () => const FeedShimmer(),
+                error: (err, stack) => Center(child: Text("Error: $err")),
+                data: (photos) {
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification scrollInfo) {
+                      if (scrollInfo.metrics.axis == Axis.vertical &&
+                          scrollInfo.metrics.pixels >=
+                              scrollInfo.metrics.maxScrollExtent - 200) {
+                        ref.read(homeFeedProvider.notifier).loadMore();
+                      }
+                      return false;
+                    },
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
                             ),
-                            Text('20 Pins', style: theme.textTheme.bodySmall),
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const SizedBox(height: 10),
                                 Text(
-                                  'Your Saves',
-                                  style: theme.textTheme.titleLarge!.copyWith(
+                                  'DIY and Crafts',
+                                  style: theme.textTheme.displaySmall!.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 18,
                                   ),
                                 ),
-                                Container(
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.cardColor,
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Icon(CupertinoIcons.arrow_right),
+                                Text(
+                                  '${photos.length} Pins',
+                                  style: theme.textTheme.bodySmall,
                                 ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Your Saves',
+                                      style: theme.textTheme.titleLarge!
+                                          .copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: theme.cardColor,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: const Icon(
+                                        CupertinoIcons.arrow_right,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
 
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 120,
-
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          itemCount: 20,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            return AspectRatio(
-                              aspectRatio: 1 / 1.5,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(color: Colors.grey[300]),
+                        SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: 120,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
                               ),
-                            );
-                          },
+                              itemCount: photos.length > 20
+                                  ? 20
+                                  : photos.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (context, index) {
+                                final photo = photos[index];
+                                return AspectRatio(
+                                  aspectRatio: 1 / 1.5,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      photo.srcMedium,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return Container(
+                                              color: Colors.grey[300],
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator.adaptive(),
+                                              ),
+                                            );
+                                          },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[300],
+                                              child: const Icon(Icons.error),
+                                            );
+                                          },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
 
-                    // 3. SPACER (Between Horizontal List and Main Grid)
-                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-                    // 4. MAIN VERTICAL GRID (Existing)
-                    photosAsync.when(
-                      loading: () =>
-                          const SliverToBoxAdapter(child: FeedShimmer()),
-                      error: (err, stack) => SliverToBoxAdapter(
-                        child: Center(child: Text("Error: $err")),
-                      ),
-                      data: (photos) {
-                        return SliverMasonryGrid.count(
+                        SliverMasonryGrid.count(
                           crossAxisCount: 2,
                           mainAxisSpacing: 10,
                           crossAxisSpacing: 10,
@@ -243,108 +273,139 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             }
                             return PinCard(photo: photos[index], isPin: true);
                           },
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
             PinterestRefreshIndicator(
               onRefresh: () async {
                 await ref.read(homeFeedProvider.notifier).refresh();
               },
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification scrollInfo) {
-                  // Pagination logic for the main vertical scroll
-                  if (scrollInfo.metrics.axis == Axis.vertical &&
-                      scrollInfo.metrics.pixels >=
-                          scrollInfo.metrics.maxScrollExtent - 200) {
-                    ref.read(homeFeedProvider.notifier).loadMore();
-                  }
-                  return false;
-                },
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 10),
-                            Text(
-                              'My Saves',
-                              style: theme.textTheme.displaySmall!.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+              child: photosAsync.when(
+                loading: () => const FeedShimmer(),
+                error: (err, stack) => Center(child: Text("Error: $err")),
+                data: (photos) {
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification scrollInfo) {
+                      if (scrollInfo.metrics.axis == Axis.vertical &&
+                          scrollInfo.metrics.pixels >=
+                              scrollInfo.metrics.maxScrollExtent - 200) {
+                        ref.read(homeFeedProvider.notifier).loadMore();
+                      }
+                      return false;
+                    },
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
                             ),
-                            Text('79 Pins', style: theme.textTheme.bodySmall),
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const SizedBox(height: 10),
                                 Text(
-                                  'Your Saves',
-                                  style: theme.textTheme.titleLarge!.copyWith(
+                                  'My Saves',
+                                  style: theme.textTheme.displaySmall!.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 18,
                                   ),
                                 ),
-                                Container(
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: theme.cardColor,
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Icon(CupertinoIcons.arrow_right),
+                                Text(
+                                  '${photos.length} Pins',
+                                  style: theme.textTheme.bodySmall,
                                 ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Your Saves',
+                                      style: theme.textTheme.titleLarge!
+                                          .copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: theme.cardColor,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: const Icon(
+                                        CupertinoIcons.arrow_right,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
 
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 120,
-
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          itemCount: 20,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            return AspectRatio(
-                              aspectRatio: 1 / 1.5,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(color: Colors.grey[300]),
+                        SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: 120,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
                               ),
-                            );
-                          },
+                              itemCount: photos.length > 20
+                                  ? 20
+                                  : photos.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (context, index) {
+                                final photo = photos[index];
+                                return AspectRatio(
+                                  aspectRatio: 1 / 1.5,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      photo.srcMedium,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return Container(
+                                              color: Colors.grey[300],
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator.adaptive(),
+                                              ),
+                                            );
+                                          },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[300],
+                                              child: const Icon(Icons.error),
+                                            );
+                                          },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
 
-                    // 3. SPACER (Between Horizontal List and Main Grid)
-                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-                    // 4. MAIN VERTICAL GRID (Existing)
-                    photosAsync.when(
-                      loading: () =>
-                          const SliverToBoxAdapter(child: FeedShimmer()),
-                      error: (err, stack) => SliverToBoxAdapter(
-                        child: Center(child: Text("Error: $err")),
-                      ),
-                      data: (photos) {
-                        return SliverMasonryGrid.count(
+                        SliverMasonryGrid.count(
                           crossAxisCount: 2,
                           mainAxisSpacing: 10,
                           crossAxisSpacing: 10,
@@ -360,11 +421,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             }
                             return PinCard(photo: photos[index], isPin: true);
                           },
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],

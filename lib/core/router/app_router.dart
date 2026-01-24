@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pinterest_clone/core/presentation/main_wrapper.dart';
 import 'package:pinterest_clone/features/auth/presentation/screens/login_screen.dart';
 import 'package:pinterest_clone/features/home/presentation/screens/home_screen.dart';
+import 'package:pinterest_clone/features/search/presentation/screens/search_page.dart';
 import '../../features/auth/presentation/providers/auth_state_provider.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -45,17 +46,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/search',
-                builder: (context, state) =>
-                    const Scaffold(body: Center(child: Text("Search"))),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/add',
-                builder: (context, state) =>
-                    const Scaffold(body: Center(child: Text("Add"))),
+                builder: (context, state) => const SearchPage(),
               ),
             ],
           ),
