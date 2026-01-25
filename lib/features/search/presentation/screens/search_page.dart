@@ -152,9 +152,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          color: isOverlay
-              ? theme.scaffoldBackgroundColor.withOpacity(0.9)
-              : theme.scaffoldBackgroundColor,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: theme.colorScheme.secondary, width: 0.5),
         ),
@@ -171,7 +169,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   hintText: 'Search for ideas',
                   hintStyle: TextStyle(color: theme.colorScheme.secondary),
                   border: InputBorder.none,
-                  fillColor: theme.scaffoldBackgroundColor,
+                  fillColor: theme.cardColor,
                 ),
                 onSubmitted: (value) => notifier.search(value),
                 onChanged: (value) {
@@ -477,7 +475,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 'Ideas for you',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
-              // Tappable title
               GestureDetector(
                 onTap: () => _searchForTopic('New poster', notifier),
                 child: Row(
@@ -608,7 +605,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     );
   }
 
-  // Helper method to search for a topic
   void _searchForTopic(String topic, SearchNotifier notifier) {
     _stopAutoScroll();
     _searchController.text = topic;

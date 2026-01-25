@@ -1,18 +1,116 @@
+import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:pinterest_clone/core/constants/api_constants.dart';
 import 'package:pinterest_clone/core/constants/constants.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_images.dart';
 import '../providers/auth_state_provider.dart';
 import '../widgets/pinterest_gallery.dart';
+import 'package:clerk_auth/clerk_auth.dart' as clerk;
 
-class LoginScreen extends ConsumerWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  late final ClerkAuthState _clerkAuthState;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _clerkAuthState = ClerkAuth.of(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signInWithEmail() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter email and password")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _clerkAuthState.attemptSignIn(
+        strategy: clerk.Strategy.password,
+        identifier: _emailController.text,
+        password: _passwordController.text,
+      );
+    } catch (e) {
+      _showError(e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final google = GoogleSignIn.instance;
+
+      await google.initialize(
+        serverClientId: ApiConstants.googleClientId,
+        nonce: const Uuid().v4(),
+      );
+
+      final account = await google.authenticate(
+        scopeHint: const ['openid', 'email', 'profile'],
+      );
+
+      if (account == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      await _clerkAuthState.attemptSignIn(
+        strategy: clerk.Strategy.oauthTokenGoogle,
+        token: account.authentication.idToken,
+      );
+    } catch (e) {
+      _showError("Google Sign In Failed: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    if (!await launchUrl(Uri.parse(url))) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final theme = Theme.of(context);
 
@@ -48,7 +146,6 @@ class LoginScreen extends ConsumerWidget {
                         'Create a life\nyou love',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.white,
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.5,
@@ -58,6 +155,9 @@ class LoginScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
 
                       TextField(
+                        onTap: () {
+                          ref.read(authStateProvider.notifier).state = true;
+                        },
                         decoration: InputDecoration(
                           hintText: 'Email address',
                           hintStyle: TextStyle(
@@ -65,7 +165,7 @@ class LoginScreen extends ConsumerWidget {
                             fontSize: 16,
                           ),
                           filled: true,
-                          // fillColor: const Color(0xFF2C2C2C),
+
                           fillColor: theme.scaffoldBackgroundColor,
                           contentPadding: const EdgeInsets.all(14),
                           border: OutlineInputBorder(
@@ -124,7 +224,9 @@ class LoginScreen extends ConsumerWidget {
                         width: double.infinity,
                         height: 52,
                         child: OutlinedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            ref.read(authStateProvider.notifier).state = true;
+                          },
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(horizontal: 16),
                             side: BorderSide(color: theme.hintColor, width: 1),
@@ -177,11 +279,15 @@ class LoginScreen extends ConsumerWidget {
 
                       const SizedBox(height: 30),
 
-                      // 7. Legal Text
                       RichText(
                         textAlign: TextAlign.center,
+
                         text: TextSpan(
-                          style: TextStyle(fontSize: 12, height: 1.6),
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.6,
+                            color: theme.colorScheme.secondary,
+                          ),
                           children: [
                             const TextSpan(
                               text: 'By continuing, you agree to Pinterest\'s ',
@@ -236,11 +342,5 @@ class LoginScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _launchUrl(String url) async {
-    if (!await launchUrl(Uri.parse(url))) {
-      throw Exception('Could not launch $url');
-    }
   }
 }

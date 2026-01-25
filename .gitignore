@@ -47,5 +47,5 @@ app.*.map.json
 # FVM Version Cache
 .fvm/
 
-#lib
-/lib/core/constants/api_constants.dart
+# API Keys / Secrets
+lib/core/constants/api_constants.dart
