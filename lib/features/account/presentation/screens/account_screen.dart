@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pinterest_clone/features/home/data/models/photo_model.dart';
 import 'package:pinterest_clone/features/home/presentation/providers/home_provider.dart';
 import 'package:pinterest_clone/features/home/presentation/widgets/feed_shimmer.dart';
 
@@ -344,7 +345,7 @@ class _PinsTab extends ConsumerWidget {
                 crossAxisSpacing: 4,
                 childCount: photos.length,
                 itemBuilder: (context, index) {
-                  return _PinGridItem(imageUrl: photos[index].srcMedium);
+                  return _PinGridItem(photo: photos[index]);
                 },
               ),
             ),
@@ -358,20 +359,25 @@ class _PinsTab extends ConsumerWidget {
 }
 
 class _PinGridItem extends StatelessWidget {
-  final String imageUrl;
+  final PhotoModel photo;
 
-  const _PinGridItem({required this.imageUrl});
+  const _PinGridItem({required this.photo});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: CachedNetworkImage(
-        imageUrl: imageUrl,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => AspectRatio(
-          aspectRatio: 1,
-          child: Container(color: Colors.grey[800]),
+    return GestureDetector(
+      onTap: () {
+        context.push('/pin/${photo.id}', extra: photo);
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: CachedNetworkImage(
+          imageUrl: photo.srcMedium,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => AspectRatio(
+            aspectRatio: 1,
+            child: Container(color: Colors.grey[800]),
+          ),
         ),
       ),
     );

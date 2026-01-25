@@ -154,6 +154,7 @@ class AppTheme {
         },
       ),
       splashFactory: NoSplash.splashFactory,
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: _pinterestRed),
     );
   }
 }

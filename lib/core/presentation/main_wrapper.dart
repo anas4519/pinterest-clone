@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pinterest_clone/core/presentation/widgets/create_bottom_sheet.dart';
 
 class MainWrapper extends StatelessWidget {
@@ -104,15 +103,9 @@ class _ProfileAvatar extends StatelessWidget {
         border: isActive ? Border.all(color: borderColor, width: 2) : null,
       ),
       padding: isActive ? const EdgeInsets.all(2.0) : EdgeInsets.zero,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(50),
-        child: CachedNetworkImage(
-          imageUrl:
-              "https:images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(color: Colors.grey[800]),
-          errorWidget: (context, url, error) => const Icon(Icons.person),
-        ),
+      child: CircleAvatar(
+        radius: 8,
+        child: Text('A', style: TextStyle(fontSize: 12)),
       ),
     );
   }

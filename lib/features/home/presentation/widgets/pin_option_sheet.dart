@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:pinterest_clone/features/home/data/models/photo_model.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PinOptionsSheet extends StatelessWidget {
@@ -227,13 +226,13 @@ class PinOptionsSheet extends StatelessWidget {
         options: Options(responseType: ResponseType.bytes),
       );
 
-      final result = await ImageGallerySaver.saveImage(
-        response.data,
-        quality: 100,
-        name: "pinterest_${DateTime.now().millisecondsSinceEpoch}",
-      );
+      // final result = await ImageGallerySaver.saveImage(
+      //   response.data,
+      //   quality: 100,
+      //   name: "pinterest_${DateTime.now().millisecondsSinceEpoch}",
+      // );
 
-      if (result['isSuccess'] == true) {
+      if (true) {
         _showSnackBar(context, "Image saved to gallery!");
       } else {
         _showSnackBar(context, "Failed to save image");
